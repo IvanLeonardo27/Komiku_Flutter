@@ -61,20 +61,50 @@ class NetworkService {
   }
 
   Future<int?> createComic(String title, String description, String posterURL, String authorId, List<String> categories) async {
-    final res = await http.post(Uri.parse('$baseURL/createComic.php'), body: {
-      'title': title, 'description': description, 'poster_url': posterURL,
-      'author_id': authorId, 'categories': categories.join(','),
-    });
-    final data = jsonDecode(res.body);
-    if (data['result'] == 'success') return data['comic_id'];
+    try {
+      final res = await http.post(
+        Uri.parse('$baseURL/createComic.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'title': title,
+          'description': description,
+          'poster_url': posterURL,
+          'author_id': authorId,
+          'categories': categories.join(','),
+        },
+      );
+      // ignore: avoid_print
+      print('[createComic] Status: ${res.statusCode}, Body: ${res.body}');
+      if (res.statusCode != 200 || res.body.trim().isEmpty) return null;
+      final data = jsonDecode(res.body);
+      if (data['result'] == 'success') return int.tryParse(data['comic_id'].toString());
+    } catch (e) {
+      // ignore: avoid_print
+      print('[createComic ERROR] $e');
+    }
     return null;
   }
 
   Future<bool> addRating(String comicId, String userId, double rating) async {
-    final res = await http.post(Uri.parse('$baseURL/addRating.php'), body: {
-      'comic_id': comicId, 'user_id': userId, 'rating': rating.toString(),
-    });
-    return jsonDecode(res.body)['result'] == 'success';
+    try {
+      final res = await http.post(
+        Uri.parse('$baseURL/addRating.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'comic_id': comicId,
+          'user_id': userId,
+          'rating': rating.toString(),
+        },
+      );
+      // ignore: avoid_print
+      print('[addRating] Status: ${res.statusCode}, Body: ${res.body}');
+      if (res.statusCode != 200 || res.body.trim().isEmpty) return false;
+      return jsonDecode(res.body)['result'] == 'success';
+    } catch (e) {
+      // ignore: avoid_print
+      print('[addRating ERROR] $e');
+      return false;
+    }
   }
 
   Future<bool> addComment(String comicId, String userId, String content, {String? parentId}) async {
@@ -92,24 +122,66 @@ class NetworkService {
   }
 
   Future<int?> createChapter(int comicId, String title, int chapterNumber) async {
-    final res = await http.post(Uri.parse('$baseURL/createChapter.php'), body: {
-      'comic_id': comicId.toString(), 'title': title, 'chapter_number': chapterNumber.toString(),
-    });
-    final data = jsonDecode(res.body);
-    if (data['result'] == 'success') return data['chapter_id'];
+    try {
+      final res = await http.post(
+        Uri.parse('$baseURL/createChapter.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'comic_id': comicId.toString(),
+          'title': title,
+          'chapter_number': chapterNumber.toString(),
+        },
+      );
+      // ignore: avoid_print
+      print('[createChapter] Status: ${res.statusCode}, Body: ${res.body}');
+      if (res.statusCode != 200 || res.body.trim().isEmpty) return null;
+      final data = jsonDecode(res.body);
+      if (data['result'] == 'success') return int.tryParse(data['chapter_id'].toString());
+    } catch (e) {
+      // ignore: avoid_print
+      print('[createChapter ERROR] $e');
+    }
     return null;
   }
 
   Future<bool> addChapterPage(int chapterId, int pageNumber, String imageURL) async {
-    final res = await http.post(Uri.parse('$baseURL/addChapterPage.php'), body: {
-      'chapter_id': chapterId.toString(), 'page_number': pageNumber.toString(), 'image_url': imageURL,
-    });
-    return jsonDecode(res.body)['result'] == 'success';
+    try {
+      final res = await http.post(
+        Uri.parse('$baseURL/addChapterPage.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'chapter_id': chapterId.toString(),
+          'page_number': pageNumber.toString(),
+          'image_url': imageURL,
+        },
+      );
+      // ignore: avoid_print
+      print('[addChapterPage] Status: ${res.statusCode}, Body: ${res.body}');
+      if (res.statusCode != 200 || res.body.trim().isEmpty) return false;
+      return jsonDecode(res.body)['result'] == 'success';
+    } catch (e) {
+      // ignore: avoid_print
+      print('[addChapterPage ERROR] $e');
+      return false;
+    }
   }
 
   Future<bool> addView(String comicId) async {
-    final res = await http.post(Uri.parse('$baseURL/addViews.php'), body: {'comic_id': comicId});
-    return jsonDecode(res.body)['result'] == 'success';
+    try {
+      final res = await http.post(
+        Uri.parse('$baseURL/addViews.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'comic_id': comicId},
+      );
+      // ignore: avoid_print
+      print('[addView] Status: ${res.statusCode}, Body: ${res.body}');
+      if (res.statusCode != 200 || res.body.trim().isEmpty) return false;
+      return jsonDecode(res.body)['result'] == 'success';
+    } catch (e) {
+      // ignore: avoid_print
+      print('[addView ERROR] $e');
+      return false;
+    }
   }
 
   Future<double> getUserRating(String comicId, String userId) async {

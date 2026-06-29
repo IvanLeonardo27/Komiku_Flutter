@@ -267,17 +267,25 @@ class CreateComicProvider extends ChangeNotifier {
     isPublishing = true;
     errorMessage = null;
     notifyListeners();
-    final comicId = await NetworkService.shared.createComic(
-      title, description, posterURL, authorId, selectedCategories.toList(),
-    );
-    isPublishing = false;
-    if (comicId != null) {
-      publishSuccess = true;
-      resetForm();
-    } else {
-      errorMessage = 'Gagal mempublikasikan komik';
+    int? comicId;
+    try {
+      comicId = await NetworkService.shared.createComic(
+        title, description, posterURL, authorId, selectedCategories.toList(),
+      );
+      if (comicId != null) {
+        publishSuccess = true;
+        resetForm();
+      } else {
+        errorMessage = 'Gagal mempublikasikan komik';
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[publish ERROR] $e');
+      errorMessage = 'Terjadi kesalahan: $e';
+    } finally {
+      isPublishing = false;
+      notifyListeners();
     }
-    notifyListeners();
     return comicId;
   }
 
