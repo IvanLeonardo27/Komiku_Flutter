@@ -225,9 +225,16 @@ class SearchProvider extends ChangeNotifier {
     if (query.trim().isEmpty) { results = []; notifyListeners(); return; }
     isSearching = true;
     notifyListeners();
-    results = await NetworkService.shared.searchComics(query);
-    isSearching = false;
-    notifyListeners();
+    try {
+      results = await NetworkService.shared.searchComics(query);
+    } catch (e) {
+      // ignore: avoid_print
+      print('[search ERROR] $e');
+      results = [];
+    } finally {
+      isSearching = false;
+      notifyListeners();
+    }
   }
 
   void clearQuery() {

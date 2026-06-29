@@ -55,7 +55,12 @@ class Comic {
       id: json['id'].toString(),
       title: json['title'],
       posterURL: json['posterURL'],
-      categories: List<String>.from(json['categories'] ?? []),
+      categories: (json['categories'] as List? ?? []).map((e) {
+        if (e is Map) {
+          return (e['name'] ?? '').toString();
+        }
+        return e.toString();
+      }).toList(),
       averageRating: (json['averageRating'] ?? 0).toDouble(),
       totalRatings: json['totalRatings'] ?? 0,
       totalViews: json['totalViews'] ?? 0,
