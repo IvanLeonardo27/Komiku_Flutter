@@ -113,7 +113,13 @@ class NetworkService {
   }
 
   Future<double> getUserRating(String comicId, String userId) async {
-    final res = await http.get(Uri.parse('$baseURL/getUserRating.php?comic_id=$comicId&user_id=$userId'));
-    return (jsonDecode(res.body)['rating'] ?? 0).toDouble();
+    try {
+      final res = await http.get(Uri.parse('$baseURL/getUserRating.php?comic_id=$comicId&user_id=$userId'));
+      if (res.statusCode != 200 || res.body.trim().isEmpty) return 0.0;
+      final data = jsonDecode(res.body);
+      return (data['rating'] ?? 0).toDouble();
+    } catch (_) {
+      return 0.0;
+    }
   }
 }
