@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:project_uas/models/models.dart';
 import 'package:project_uas/services/network_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Auth Provider
 class AuthProvider extends ChangeNotifier {
@@ -8,7 +9,27 @@ class AuthProvider extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
+  AuthProvider() {
+    checkSession();
+  }
+
   bool get isLoggedIn => currentUser != null;
+
+  Future<void> checkSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+      final username = prefs.getString('username');
+      final email = prefs.getString('email');
+      if (userId != null && username != null && email != null) {
+        currentUser = User(id: userId, username: username, email: email);
+        notifyListeners();
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[SESSION ERROR] $e');
+    }
+  }
 
   Future<void> login(String username, String password) async {
     if (username.isEmpty || password.isEmpty) {
@@ -23,19 +44,36 @@ class AuthProvider extends ChangeNotifier {
     try {
       final (success, userId) = await NetworkService.shared.login(username, password);
       if (success) {
-        currentUser = User(id: userId.toString(), username: username, email: '$username@komiku.id');
+        final email = '$username@komiku.id';
+        currentUser = User(id: userId.toString(), username: username, email: email);
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', userId.toString());
+        await prefs.setString('username', username);
+        await prefs.setString('email', email);
       } else {
         errorMessage = 'Username atau password salah';
       }
-    } catch (_) {
-      errorMessage = 'Gagal terhubung ke server';
+    } catch (e) {
+      // ignore: avoid_print
+      print('[LOGIN ERROR] $e');
+      errorMessage = 'Gagal terhubung ke server: $e';
     }
     isLoading = false;
     notifyListeners();
   }
 
-  void logout() {
+  Future<void> logout() async {
     currentUser = null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('username');
+      await prefs.remove('email');
+    } catch (e) {
+      // ignore: avoid_print
+      print('[LOGOUT ERROR] $e');
+    }
     notifyListeners();
   }
 }
