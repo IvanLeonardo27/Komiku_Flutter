@@ -27,10 +27,8 @@ class AuthProvider extends ChangeNotifier {
       } else {
         errorMessage = 'Username atau password salah';
       }
-    } catch (e) {
-      // ignore: avoid_print
-      print('[LOGIN ERROR] $e');
-      errorMessage = 'Gagal terhubung ke server: $e';
+    } catch (_) {
+      errorMessage = 'Gagal terhubung ke server';
     }
     isLoading = false;
     notifyListeners();
@@ -141,22 +139,34 @@ class ComicDetailProvider extends ChangeNotifier {
     if (newComment.trim().isEmpty) return;
     isSubmittingComment = true;
     notifyListeners();
-    await NetworkService.shared.addComment(comic.id, userId, newComment);
-    newComment = '';
-    comic.totalComments++;
-    await loadComments();
-    isSubmittingComment = false;
-    notifyListeners();
+    try {
+      await NetworkService.shared.addComment(comic.id, userId, newComment);
+      newComment = '';
+      comic.totalComments++;
+      await loadComments();
+    } catch (e) {
+      // ignore: avoid_print
+      print('[submitComment ERROR] $e');
+    } finally {
+      isSubmittingComment = false;
+      notifyListeners();
+    }
   }
 
   Future<void> submitReply(String parentId, String userId, String username, String content) async {
     isSubmittingComment = true;
     notifyListeners();
-    await NetworkService.shared.addComment(comic.id, userId, content, parentId: parentId);
-    comic.totalComments++;
-    await loadComments();
-    isSubmittingComment = false;
-    notifyListeners();
+    try {
+      await NetworkService.shared.addComment(comic.id, userId, content, parentId: parentId);
+      comic.totalComments++;
+      await loadComments();
+    } catch (e) {
+      // ignore: avoid_print
+      print('[submitReply ERROR] $e');
+    } finally {
+      isSubmittingComment = false;
+      notifyListeners();
+    }
   }
 
   Future<void> submitRating(String userId, double score) async {

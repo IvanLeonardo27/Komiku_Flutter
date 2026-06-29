@@ -80,7 +80,14 @@ class NetworkService {
   Future<bool> addComment(String comicId, String userId, String content, {String? parentId}) async {
     final body = {'comic_id': comicId, 'user_id': userId, 'content': content};
     if (parentId != null) body['parent_id'] = parentId;
-    final res = await http.post(Uri.parse('$baseURL/addComment.php'), body: body);
+    final res = await http.post(
+      Uri.parse('$baseURL/addComment.php'),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: body,
+    );
+    // ignore: avoid_print
+    print('[addComment] Status: ${res.statusCode}, Body: ${res.body}');
+    if (res.statusCode != 200 || res.body.trim().isEmpty) return false;
     return jsonDecode(res.body)['result'] == 'success';
   }
 
